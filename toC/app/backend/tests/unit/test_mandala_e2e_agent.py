@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
-
 from app.core.mandala_interpretation_agent import (
     MandalaAgentInput,
     MandalaImageInput,
@@ -24,18 +22,11 @@ from app.core.mandala_interpretation_agent.topic_prompt_pack_builder import (
     TopicPromptPackBuilder,
 )
 from app.core.mandala_interpretation_agent.topic_prompt_pack_registry import (
-    GENERATED_PROMPT_PACKS_ROOT,
     TOPIC_PROMPT_PACK_CONFIGS,
     get_topic_config,
 )
 from app.core.mandala_interpretation_agent.wealth_prompt_pack_builder import (
     WealthPromptPackBuilder,
-)
-
-
-requires_knowledge_packs = pytest.mark.skipif(
-    not (GENERATED_PROMPT_PACKS_ROOT / "wealth-reasoning-v1.0.0").exists(),
-    reason="requires proprietary generated prompt packs (not included in the OSS release)",
 )
 
 
@@ -127,7 +118,6 @@ def _agent_input(tmp_path: Path) -> MandalaAgentInput:
     )
 
 
-@requires_knowledge_packs
 def test_end_to_end_agent_returns_new_contract(tmp_path):
     llm_client = StubE2ELLMClient()
     result = MandalaInterpretationAgent(llm_client=llm_client).run(
@@ -175,7 +165,6 @@ def test_end_to_end_agent_returns_new_contract(tmp_path):
     assert "不要自称心理咨询师" in report_text_call["user_prompt"]
 
 
-@requires_knowledge_packs
 def test_two_pass_rewrites_structured_visual_draft_to_markdown(tmp_path):
     llm_client = StubE2ELLMClient()
     llm_client.return_structured_first_vision_text = True
@@ -190,7 +179,6 @@ def test_two_pass_rewrites_structured_visual_draft_to_markdown(tmp_path):
     assert len([call for call in llm_client.text_calls if call["task"] == "vision"]) == 2
 
 
-@requires_knowledge_packs
 def test_two_pass_visual_draft_does_not_leak_cross_circle_five_elements(tmp_path):
     llm_client = StubE2ELLMClient()
     MandalaInterpretationAgent(llm_client=llm_client).run(
@@ -267,7 +255,6 @@ def test_quality_gate_flags_persona_boundary_overreach():
     assert "我是你的心理咨询师" in quality["details"]["persona_overreach_terms"]
 
 
-@requires_knowledge_packs
 def test_single_pass_agent_variant_generates_report_with_one_vision_text_call(tmp_path):
     llm_client = StubE2ELLMClient()
     agent_input = _agent_input(tmp_path)
@@ -301,7 +288,6 @@ def test_single_pass_agent_variant_generates_report_with_one_vision_text_call(tm
     assert result.quality_gate["passed"] is True
 
 
-@requires_knowledge_packs
 def test_pro_report_mode_remains_internal_prelaunch(tmp_path):
     llm_client = StubE2ELLMClient()
     agent_input = _agent_input(tmp_path)
